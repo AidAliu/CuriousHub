@@ -18,9 +18,6 @@ public class CuriousHubApplication {
 
 
 	}
-	@GetMapping
-	public List<User> hello() {
-		return List.of(new User(1L, "AlbertEinstein","relativity299792458","einstein@gmail.com"));
-	}
+
 
 }
