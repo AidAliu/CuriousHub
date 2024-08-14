@@ -4,6 +4,16 @@ spring:
     username: root
     password:
     driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      minimum-idle: 5
+      idle-timeout: 600000
+      maximum-pool-size: 10
+      auto-commit: false
+      pool-name: CuriousHubHikariCP
+      max-lifetime: 1800000
+      connection-timeout: 30000
+      validation-timeout: 5000
+      leak-detection-threshold: 2000
 
   jpa:
     hibernate:
@@ -11,10 +21,16 @@ spring:
     show-sql: true
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQL8Dialect
+        dialect: org.hibernate.dialect.MySQLDialect
+
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher # Fixes the issue with pattern matching
 
 server:
   port: 8080
+  servlet:
+    context-path: /curioushub # Defines your context path
 
 logging:
   level:

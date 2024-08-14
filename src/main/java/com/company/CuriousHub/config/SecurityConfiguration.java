@@ -6,7 +6,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -22,24 +21,16 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable)
+                .csrf(csrf -> csrf.disable())  // Correctly disable CSRF
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/register", "/register.html", "/login", "/login.html", "/api/v1/auth/**", "/static/**", "/css/**", "/js/**").permitAll() // Allow access to specific endpoints
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .anyRequest().authenticated()
+                        .requestMatchers("/api/v1/auth/**").permitAll()  // Allow public access to auth endpoints
+                        .anyRequest().authenticated()  // Require authentication for all other requests
                 )
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)  // No session state; use JWT
                 )
-                .formLogin(form -> form
-                        .loginPage("/login.html") // Use the login.html page in static resources
-                        .permitAll()
-                )
-                .logout(logout -> logout
-                        .permitAll()
-                )
-                .authenticationProvider(authenticationProvider)
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                .authenticationProvider(authenticationProvider)  // Use custom authentication provider
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);  // Add JWT filter before default auth filter
 
         return http.build();
     }
