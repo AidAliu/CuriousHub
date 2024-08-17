@@ -1,33 +1,41 @@
 .navbar {
-    background-color: #242526;
-    padding: 15px;
-    display: flex;
-    justify-content: space-between; /* Space between brand and buttons */
-    align-items: center;
-  }
-  
-  .navbar-brand {
-    color: #E4E6EB;
-    font-size: 24px;
-  }
-  
-  .navbar-brand:hover {
-    color: #1877F2;
-  }
-  
-  .button-container {
-    display: flex;
-  }
-  
-  .btn-outline-light {
-    color: #E4E6EB;
-    border: 1px solid #E4E6EB;
-    margin-left: 10px;
-  }
-  
-  .btn-outline-light:hover {
-    background-color: #3A3B3C;
-    color: #1877F2;
-    border-color: #1877F2;
-  }
-  
+  background-color: #242526;
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.navbar-brand {
+  color: #E4E6EB;
+  font-size: 24px;
+  text-decoration: none; /* Remove underline */
+}
+
+.navbar-brand:hover {
+  color: #1877F2;
+  text-decoration: none; /* Ensure underline doesn't appear on hover */
+}
+
+.dashboard-title {
+  color: #E4E6EB;
+  font-size: 24px;
+  text-align: center;
+  flex-grow: 1; 
+}
+
+.button-container {
+  display: flex;
+}
+
+.btn-outline-light {
+  color: #E4E6EB;
+  border: 1px solid #E4E6EB;
+  margin-left: 10px;
+}
+
+.btn-outline-light:hover {
+  background-color: #3A3B3C;
+  color: #1877F2;
+  border-color: #1877F2;
+}

@@ -1,9 +1,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../../components/styles/Navbar.css';
+import '../styles/Navbar.css';  
 
 export default function Navbar() {
   const navigate = useNavigate();
+  const token = localStorage.getItem('token');
 
   const handleLoginClick = () => {
     navigate('/login');
@@ -13,12 +14,24 @@ export default function Navbar() {
     navigate('/register');
   };
 
+  const handleLogoutClick = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    navigate('/login');
+  };
+
   return (
     <nav className="navbar">
       <a className="navbar-brand" href="#">CuriousHub</a>
       <div className="button-container">
-        <button className="btn btn-outline-light" onClick={handleLoginClick}>Login</button>
-        <button className="btn btn-outline-light" onClick={handleRegisterClick}>Register</button>
+        {token ? (
+          <button className="btn btn-outline-light" onClick={handleLogoutClick}>Logout</button>
+        ) : (
+          <>
+            <button className="btn btn-outline-light" onClick={handleLoginClick}>Login</button>
+            <button className="btn btn-outline-light" onClick={handleRegisterClick}>Register</button>
+          </>
+        )}
       </div>
     </nav>
   );

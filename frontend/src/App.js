@@ -1,8 +1,12 @@
-import "../node_modules/bootstrap/dist/css/bootstrap.min.css";
-import Navbar from "./components/layout/Navbar";
-import Login from "./components/auth/Login";
-import Register from "./components/auth/Register";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Navbar from './components/layout/Navbar';
+import Login from './components/auth/Login';
+import AdminDashboard from './components/admin/AdminDashboard';
+import ProtectedRoute from './components/auth/ProtectedRoute'; 
+import Home from "./pages/Home";
+import Register from './components/auth/Register';
+
 
 function App() {
   return (
@@ -10,9 +14,15 @@ function App() {
       <div className="App">
         <Navbar />
         <Routes>
+          <Route path="/home" element={<Home/>} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          {/* Add other routes here as needed */}
+          <Route path="/dashboard" element={
+            <ProtectedRoute allowedRole="ADMIN">
+              <AdminDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/" element={<Home />} />
         </Routes>
       </div>
     </Router>

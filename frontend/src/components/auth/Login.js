@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../styles/Auth.css';
 
 function Login() {
@@ -6,6 +7,8 @@ function Login() {
     username: '',
     password: ''
   });
+
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({
@@ -30,6 +33,17 @@ function Login() {
         const data = await response.json();
         alert('Login successful');
         console.log('Token:', data.token);
+
+        // Store role and token in localStorage
+        localStorage.setItem('role', data.role);
+        localStorage.setItem('token', data.token);
+
+        // Check the role and redirect accordingly
+        if (data.role === 'ADMIN') {
+          navigate('/dashboard');
+        } else {
+          navigate('/home');
+        }
       } else {
         alert('Login failed: Invalid username or password');
       }
