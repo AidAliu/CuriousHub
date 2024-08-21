@@ -1,44 +1,35 @@
 import React from 'react';
-import { Container, Row, Col, Card } from 'react-bootstrap';
-import '../styles/Dashboard.css';
+import { Link } from 'react-router-dom';
+import '../styles/Dashboard.css'; 
 
 const AdminDashboard = () => {
   return (
-    <Container>
-      <Row className="mt-4">
-        <Col md={4}>
-          <Card className="mb-4">
-            <Card.Body>
-              <Card.Title>User Management</Card.Title>
-              <Card.Text>
-                {/* Place your CRUD operations for users here */}
-              </Card.Text>
-            </Card.Body>
-          </Card>
-        </Col>
-        <Col md={4}>
-          <Card className="mb-4">
-            <Card.Body>
-              <Card.Title>Project Management</Card.Title>
-              <Card.Text>
-                {/* Place your CRUD operations for projects here */}
-              </Card.Text>
-            </Card.Body>
-          </Card>
-        </Col>
-        <Col md={4}>
-          <Card className="mb-4">
-            <Card.Body>
-              <Card.Title>Analytics</Card.Title>
-            </Card.Body>
-            <Card.Text>
-              {}
-            </Card.Text>
-          </Card>
-        </Col>
-      </Row>
-    </Container>
+    <div>
+      <h2>Admin Dashboard</h2>
+      <div className="dashboard-sections">
+        <div className="dashboard-section">
+          <h3>User Management</h3>
+          <ul>
+            <li><Link to="/users">Manage Users</Link></li>  {/* Link to the UserManagement component */}
+          </ul>
+        </div>
+        <div className="dashboard-section">
+          <h3>Project Management</h3>
+          <ul>
+            <li><Link to="/projects">View All Projects</Link></li>
+            <li><Link to="/projects/create">Add New Project</Link></li>
+          </ul>
+        </div>
+        <div className="dashboard-section">
+          <h3>Analytics</h3>
+          <ul>
+            <li><Link to="/analytics">View Analytics</Link></li>
+          </ul>
+        </div>
+        {/* More sections can be added as needed */}
+      </div>
+    </div>
   );
-}
+};
 
 export default AdminDashboard;

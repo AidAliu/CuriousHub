@@ -24,7 +24,7 @@ public class SecurityConfiguration {
                 .csrf(csrf -> csrf.disable())  // Correctly disable CSRF
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/**").permitAll()  // Allow public access to auth endpoints
-                        .requestMatchers("api/admin/**").hasRole("ADMIN")  // Restrict access to ADMIN only
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")  // Restrict access to ADMIN only
                         .anyRequest().authenticated()  // Require authentication for all other requests
                 )
                 .sessionManagement(session -> session
