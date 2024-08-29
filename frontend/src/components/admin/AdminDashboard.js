@@ -10,14 +10,13 @@ const AdminDashboard = () => {
         <div className="dashboard-section">
           <h3>User Management</h3>
           <ul>
-            <li><Link to="/users">Manage Users</Link></li>  {/* Link to the UserManagement component */}
+            <li><Link to="/users">Manage Users</Link></li>  
           </ul>
         </div>
         <div className="dashboard-section">
           <h3>Project Management</h3>
           <ul>
-            <li><Link to="/projects">View All Projects</Link></li>
-            <li><Link to="/projects/create">Add New Project</Link></li>
+            <li><Link to="/projects">Manage Projects</Link></li>  
           </ul>
         </div>
         <div className="dashboard-section">
@@ -26,7 +25,6 @@ const AdminDashboard = () => {
             <li><Link to="/analytics">View Analytics</Link></li>
           </ul>
         </div>
-        {/* More sections can be added as needed */}
       </div>
     </div>
   );

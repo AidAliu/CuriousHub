@@ -6,7 +6,8 @@ import AdminDashboard from './components/admin/AdminDashboard';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import Home from "./pages/Home";
 import Register from './components/auth/Register';
-import UserManagement from './components/admin/UserManagement';
+import ProjectManagement from './components/admin/ProjectManagement'; 
+import UserManagement from './components/admin/UserManagement'; // Import UserManagement
 
 function App() {
   return (
@@ -22,7 +23,12 @@ function App() {
               <AdminDashboard />
             </ProtectedRoute>
           } />
-          <Route path="/users" element ={
+          <Route path="/projects" element={
+            <ProtectedRoute allowedRole="ADMIN">
+              <ProjectManagement />
+            </ProtectedRoute>
+          } />
+          <Route path="/users" element={ 
             <ProtectedRoute allowedRole="ADMIN">
               <UserManagement />
             </ProtectedRoute>

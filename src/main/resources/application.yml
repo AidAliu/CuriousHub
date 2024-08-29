@@ -25,14 +25,18 @@ spring:
 
   mvc:
     pathmatch:
-      matching-strategy: ant_path_matcher # Fixes the issue with pattern matching
+      matching-strategy: ant_path_matcher  # Fixes the issue with pattern matching
 
 server:
   port: 8080
   servlet:
-    context-path: /curioushub # Defines your context path
+    context-path: /curioushub  # Defines your context path
 
 logging:
   level:
     root: INFO
     org.springframework.web: DEBUG
+
+# Custom property for file upload directory
+file:
+  upload-dir: src/main/resources/uploads
