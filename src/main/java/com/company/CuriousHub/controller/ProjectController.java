@@ -48,14 +48,10 @@ public class ProjectController {
             @RequestParam("file") MultipartFile file) {
 
         try {
-            // Get the user ID from the Security Context
             Integer userId = getCurrentUserId();
-
-            // Convert the strings to enums
             Status projectStatus = Status.valueOf(status.toUpperCase());
             Visibility projectVisibility = Visibility.valueOf(visibility.toUpperCase());
 
-            // Save the project
             Project savedProject = projectService.save(title, description, projectStatus, projectVisibility, file, userId);
             return ResponseEntity.status(HttpStatus.CREATED).body(savedProject);
 
@@ -75,13 +71,10 @@ public class ProjectController {
             @RequestParam("description") String description,
             @RequestParam("status") String status,
             @RequestParam("visibility") String visibility,
-            @RequestParam("file") MultipartFile file) {
+            @RequestParam(value = "file", required = false) MultipartFile file) {
 
         try {
-            // Get the user ID from the Security Context
             Integer userId = getCurrentUserId();
-
-            // Convert the strings to enums
             Status projectStatus = Status.valueOf(status.toUpperCase());
             Visibility projectVisibility = Visibility.valueOf(visibility.toUpperCase());
 

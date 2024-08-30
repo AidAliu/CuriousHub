@@ -1,5 +1,3 @@
-// src/components/admin/ProjectManagement.js
-
 import React, { useState, useEffect } from 'react';
 import apiClient from '../../api/apiClient';
 import { useNavigate } from 'react-router-dom';
@@ -16,6 +14,7 @@ const ProjectManagement = () => {
   const [file, setFile] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [projectId, setProjectId] = useState(null);
+  const [newFileSelected, setNewFileSelected] = useState(false); // New flag to track if a new file is uploaded
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -41,6 +40,7 @@ const ProjectManagement = () => {
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
+    setNewFileSelected(true); // Set flag to true when a new file is selected
   };
 
   const handleSubmit = async (e) => {
@@ -58,11 +58,12 @@ const ProjectManagement = () => {
     data.append('description', formData.description);
     data.append('status', formData.status);
     data.append('visibility', formData.visibility);
-    if (file) {
-      data.append('file', file);
-    }
 
     if (editMode) {
+      if (newFileSelected) {
+        // Append new file only if a new file has been selected
+        data.append('file', file);
+      }
       apiClient.put(`/projects/${projectId}`, data, config)
         .then(() => {
           setEditMode(false);
@@ -74,6 +75,7 @@ const ProjectManagement = () => {
           alert('Error updating project. Please try again later.');
         });
     } else {
+      data.append('file', file); // Append file for creating a new project
       apiClient.post('/projects', data, config)
         .then(() => fetchProjects())
         .catch(error => {
@@ -82,6 +84,7 @@ const ProjectManagement = () => {
         });
     }
 
+    // Reset form and file state after submission
     setFormData({
       title: '',
       description: '',
@@ -89,6 +92,7 @@ const ProjectManagement = () => {
       visibility: 'PUBLIC',
     });
     setFile(null);
+    setNewFileSelected(false); // Reset the flag
   };
 
   const handleEditProject = (project) => {
@@ -101,6 +105,7 @@ const ProjectManagement = () => {
       visibility: project.visibility
     });
     setFile(null); // Reset file when editing
+    setNewFileSelected(false); // Reset the flag
   };
 
   const handleDeleteProject = (id) => {
@@ -124,6 +129,7 @@ const ProjectManagement = () => {
       visibility: 'PUBLIC',
     });
     setFile(null);
+    setNewFileSelected(false); // Reset the flag
   };
 
   return (
