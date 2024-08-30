@@ -1,6 +1,7 @@
 package com.company.CuriousHub.user;
 
 import com.company.CuriousHub.project.Project;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -46,6 +47,7 @@ public class User implements UserDetails {
     private Timestamp updated_at;
 
     @ManyToMany(mappedBy = "users")
+    @JsonIgnore
     private Set<Project> projects = new HashSet<>();
 
     @Override

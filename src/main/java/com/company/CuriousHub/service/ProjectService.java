@@ -58,6 +58,13 @@ public class ProjectService {
         project.setCreatedAt(LocalDateTime.now());
         project.setUpdatedAt(LocalDateTime.now());
 
+
+        project.getUsers().add(createdBy);
+
+        createdBy.getProjects().add(project);
+
+
+        userRepository.save(createdBy);
         return projectRepository.save(project);
     }
 
