@@ -1,0 +1,32 @@
+Strings ne Python: 
+
+name = input("Merr input prej userit");
+print(f"Hello, {name}") - menyr qysh me shkru emrin pa e bo + name
+name.strip() - i hek krejt whitespaces prej stringut
+name.capitalize() - e rrit shkronjen e par ne te madhe
+name.title() - i rrit shkronjat e para te cdo fjale
+name.split(" ") - e ndan string ne nje array, ne vendet ku bohet occur qaj inputi qe ja ke jep mrena kllapave
+first, last = name.split(""); - kjo psh nese e shkrun emrin e plot(Aid Aliu), Aid e qet ne first variable edhe Aliu ne last variable
+
+Functions:
+def methodName(): - metoda ne python
+
+1.Random library:
+
+coin = random.choice(["heads", "tails"]) - propabilitet qe me ra njona ose tjetra osht 50%
+from - (from random import choice) munesh me perdor qishtu qe me importu ni metod specifike prej ni libraris qe tvyn
+random.randint(a, b) - ta jep ni random int prej range a - b
+random.shuffle(x) - e bon shuffle ni array
+
+2.Statistics library:
+
+statistics.mean() - mesataren e elementeve
+
+3.Sys Library(Command Line Arguments):
+
+sys.argv[1] - to get arguments from the command line
+sys.exit() - exits the program
+
+Other libraries:
+Requests, JSON
+

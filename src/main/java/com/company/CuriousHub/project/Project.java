@@ -44,6 +44,12 @@ public class Project {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "workers")
+    private int workers;
+
+    @Column(name = "workers_needed")
+    private int workersNeeded;
+
     @ManyToOne
     @JoinColumn(name = "created_by")
     private User createdBy;

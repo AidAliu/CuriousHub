@@ -1,0 +1,82 @@
+<p>Hyrje ne CSS</p>
+p {
+text-align: center;
+background: blue; }
+Selector: {vetia: vlera}
+
+shembull tjeter:
+<p id = "head" class = "XO1"> </p>
+<p id = "pfolder" classs = "XO1"> </p>
+#phead {
+text-align: center}
+#pfolder{....
+XO1 {
+text-align: left}
+
+3 menyra qe perdoret css ne html:
+
+1.Inline CSS - stilizimi i elementit ne qat rresht me atributin STYLE 
+Shembull:
+<div style="height: 40px;">
+<p style="font-size: 40px; color: red;font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;">Web Engineering</p>
+
+2.Internal CSS - stilizimi i elementit,po kjo intengrohet mas elementit title
+Shembull:
+<style>
+       .divClass{
+        height: 130px;
+        width: 250px;
+       }
+       #firstDiv{
+        background-color:blueviolet;
+
+       }
+       #secondDiv{
+        background-color: deepskyblue;
+
+       }
+    p{
+      font-size: 80px;
+      color: black;
+      font-family: 'Courier New', Courier, monospace;  
+    }
+    </style>
+3.External CSS - bohet tu e integru ni file te jashtem
+Kjo integrohet me "<link rel="style.css" href = style.css>
+3 menyrat e qasjes se ni elementit nCSS me internal ose externa:l
+
+1.Emri i Tagut
+2.Class - munet me kon e njejt,ju qases me . (perdor kur 2 e meshum elementev don mja jep do karakteristika tnjejta p.sh gjatsin edhe gjersin e njejt))
+3.ID - duhet me kon unike,ju qases me #   (munesh me perdor psh kur qatyne elementev don mja jep do elemente tndryshme p.sh stilin e tshkrumit edhe ngjyren ndryshe)
+
+margin - divi nraport me paragrafin livrit
+pedding - paragrafi nraport me divin livrit
+
+FlexBox - librari mrena CSS-it
+
+me bo webin responsive e perdor "media"(per mashum kqyr nyt)
+
+FlexBox perbehet prej:
+
+*Flex Kontinieri
+*Artikujt (Item) te thjeshte
+
+Disa prej vetive tkontinierit:
+*display:
+*flex-direction:
+*flex-wrap: 
+*flex-flow:
+*justify-notent:
+*align-items:
+*align-content
+
+Nkonekst telementeve:
+*order:
+*flex-grow:
+*flex-shrink:
+*flex-basis:
+*flex: none:
+*align-self:
+
+
+margin: 0 auto; - me dal nmes

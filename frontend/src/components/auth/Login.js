@@ -7,7 +7,8 @@ function Login() {
     username: '',
     password: ''
   });
-
+  const [loading, setLoading] = useState(false); // Loading state
+  const [error, setError] = useState(null); // Error state
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -19,6 +20,14 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true); // Start loading
+    setError(null); // Clear previous errors
+
+    if (!formData.username || !formData.password) {
+      setError('Please enter both username and password.');
+      setLoading(false);
+      return;
+    }
 
     try {
       const response = await fetch('http://localhost:8080/curioushub/api/v1/auth/authenticate', {
@@ -31,31 +40,31 @@ function Login() {
 
       if (response.ok) {
         const data = await response.json();
-        alert('Login successful');
         console.log('Token:', data.token);
 
-        // Store role and token in localStorage
         localStorage.setItem('role', data.role);
         localStorage.setItem('token', data.token);
 
-        // Check the role and redirect accordingly
         if (data.role === 'ADMIN') {
           navigate('/dashboard');
         } else {
           navigate('/home');
         }
       } else {
-        alert('Login failed: Invalid username or password');
+        setError('Login failed: Invalid username or password');
       }
     } catch (error) {
       console.error('Error during login:', error);
-      alert('An error occurred during login');
+      setError('An error occurred during login');
+    } finally {
+      setLoading(false); // End loading
     }
   };
 
   return (
     <form onSubmit={handleSubmit}>
       <h2>Login</h2>
+      {error && <p className="error">{error}</p>}
       <input
         type="text"
         name="username"
@@ -63,6 +72,7 @@ function Login() {
         onChange={handleChange}
         value={formData.username}
         autoComplete="username"
+        disabled={loading}
       />
       <input
         type="password"
@@ -71,8 +81,11 @@ function Login() {
         onChange={handleChange}
         value={formData.password}
         autoComplete="current-password"
+        disabled={loading}
       />
-      <button type="submit">Login</button>
+      <button type="submit" disabled={loading}>
+        {loading ? 'Logging in...' : 'Login'}
+      </button>
     </form>
   );
 }

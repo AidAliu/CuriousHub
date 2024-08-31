@@ -10,11 +10,12 @@ const ProjectManagement = () => {
     description: '',
     status: 'PENDING',
     visibility: 'PUBLIC',
+    workersNeeded: 1 // Add default value for workersNeeded
   });
   const [file, setFile] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [projectId, setProjectId] = useState(null);
-  const [newFileSelected, setNewFileSelected] = useState(false); // New flag to track if a new file is uploaded
+  const [newFileSelected, setNewFileSelected] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -34,13 +35,13 @@ const ProjectManagement = () => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
-      [name]: value
+      [name]: name === 'workersNeeded' ? parseInt(value) : value // Convert to integer for workersNeeded
     });
   };
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
-    setNewFileSelected(true); // Set flag to true when a new file is selected
+    setNewFileSelected(true);
   };
 
   const handleSubmit = async (e) => {
@@ -58,10 +59,10 @@ const ProjectManagement = () => {
     data.append('description', formData.description);
     data.append('status', formData.status);
     data.append('visibility', formData.visibility);
+    data.append('workersNeeded', formData.workersNeeded); // Include workersNeeded
 
     if (editMode) {
       if (newFileSelected) {
-        // Append new file only if a new file has been selected
         data.append('file', file);
       }
       apiClient.put(`/projects/${projectId}`, data, config)
@@ -75,7 +76,7 @@ const ProjectManagement = () => {
           alert('Error updating project. Please try again later.');
         });
     } else {
-      data.append('file', file); // Append file for creating a new project
+      data.append('file', file);
       apiClient.post('/projects', data, config)
         .then(() => fetchProjects())
         .catch(error => {
@@ -84,15 +85,15 @@ const ProjectManagement = () => {
         });
     }
 
-    // Reset form and file state after submission
     setFormData({
       title: '',
       description: '',
       status: 'PENDING',
       visibility: 'PUBLIC',
+      workersNeeded: 1
     });
     setFile(null);
-    setNewFileSelected(false); // Reset the flag
+    setNewFileSelected(false);
   };
 
   const handleEditProject = (project) => {
@@ -102,20 +103,25 @@ const ProjectManagement = () => {
       title: project.title,
       description: project.description,
       status: project.status,
-      visibility: project.visibility
+      visibility: project.visibility,
+      workersNeeded: project.workersNeeded // Ensure workersNeeded is set during edit
     });
-    setFile(null); // Reset file when editing
-    setNewFileSelected(false); // Reset the flag
+    setFile(null);
+    setNewFileSelected(false);
   };
 
   const handleDeleteProject = (id) => {
     if (window.confirm('Are you sure you want to delete this project?')) {
-      apiClient.delete(`/projects/${id}`)
-        .then(() => fetchProjects())
-        .catch(error => {
-          console.error('There was an error deleting the project!', error);
-          alert('Error deleting project. Please try again later.');
-        });
+      apiClient.delete(`/projects/${id}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}` // Ensure the token is included
+        }
+      })
+      .then(() => fetchProjects())
+      .catch(error => {
+        console.error('There was an error deleting the project!', error);
+        alert('Error deleting project. Please try again later.');
+      });
     }
   };
 
@@ -127,9 +133,10 @@ const ProjectManagement = () => {
       description: '',
       status: 'PENDING',
       visibility: 'PUBLIC',
+      workersNeeded: 1
     });
     setFile(null);
-    setNewFileSelected(false); // Reset the flag
+    setNewFileSelected(false);
   };
 
   return (
@@ -172,6 +179,14 @@ const ProjectManagement = () => {
           <option value="PRIVATE">Private</option>
         </select>
         <input
+          type="number"
+          name="workersNeeded"
+          placeholder="Workers Needed"
+          value={formData.workersNeeded}
+          onChange={handleChange}
+          required
+        />
+        <input
           type="file"
           name="file"
           onChange={handleFileChange}
@@ -189,6 +204,7 @@ const ProjectManagement = () => {
             <th>Description</th>
             <th>Status</th>
             <th>Visibility</th>
+            <th>Filename</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -200,6 +216,7 @@ const ProjectManagement = () => {
               <td>{project.description}</td>
               <td>{project.status}</td>
               <td>{project.visibility}</td>
+              <td>{project.filePath ? project.filePath.split(/(\\|\/)/g).pop() : 'No file uploaded'}</td>
               <td>
                 <button onClick={() => handleEditProject(project)}>Edit</button>
                 <button onClick={() => handleDeleteProject(project.id)}>Delete</button>

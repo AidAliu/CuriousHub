@@ -4,10 +4,10 @@ import Navbar from './components/layout/Navbar';
 import Login from './components/auth/Login';
 import AdminDashboard from './components/admin/AdminDashboard';
 import ProtectedRoute from './components/auth/ProtectedRoute';
-import Home from "./pages/Home";
+import Home from './pages/Home';
 import Register from './components/auth/Register';
 import ProjectManagement from './components/admin/ProjectManagement'; 
-import UserManagement from './components/admin/UserManagement'; // Import UserManagement
+import UserManagement from './components/admin/UserManagement';
 
 function App() {
   return (
@@ -28,7 +28,7 @@ function App() {
               <ProjectManagement />
             </ProtectedRoute>
           } />
-          <Route path="/users" element={ 
+          <Route path="/users" element={
             <ProtectedRoute allowedRole="ADMIN">
               <UserManagement />
             </ProtectedRoute>

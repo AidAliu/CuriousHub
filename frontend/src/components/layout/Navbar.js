@@ -1,10 +1,12 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import '../styles/Navbar.css';  
+import { useNavigate, useLocation } from 'react-router-dom';
+import '../styles/Navbar.css';
 
 export default function Navbar() {
   const navigate = useNavigate();
+  const location = useLocation();
   const token = localStorage.getItem('token');
+  const role = localStorage.getItem('role');
 
   const handleLoginClick = () => {
     navigate('/login');
@@ -20,12 +22,27 @@ export default function Navbar() {
     navigate('/login');
   };
 
+  const handleDashboardClick = () => {
+    navigate('/dashboard');
+  };
+
+  const handleHomeClick = () => {
+    navigate('/'); // Navigate to the home page
+  };
+
   return (
     <nav className="navbar">
-      <a className="navbar-brand" href="#">CuriousHub</a>
+      <a className="navbar-brand" href="#" onClick={handleHomeClick}>CuriousHub</a>
       <div className="button-container">
         {token ? (
-          <button className="btn btn-outline-light" onClick={handleLogoutClick}>Logout</button>
+          <>
+            {role === 'ADMIN' && location.pathname !== '/dashboard' && (
+              <button className="btn btn-outline-light" onClick={handleDashboardClick}>
+                Admin Dashboard
+              </button>
+            )}
+            <button className="btn btn-outline-light" onClick={handleLogoutClick}>Logout</button>
+          </>
         ) : (
           <>
             <button className="btn btn-outline-light" onClick={handleLoginClick}>Login</button>

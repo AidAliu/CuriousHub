@@ -1,0 +1,8 @@
+return;-will break all the loops
+intiallizonblock-is a block of curly braces inside of a class
+{
+}
+.hashCode()-ta tregon vendodhjen e stringut ne memorje
+https://app.slack.com/client/T010VA26E6Q/C0356S3AL1W
+
+The diamond problem-when 2 different methods are named the same and are used in a class that extends those 2 classes where the methods were made

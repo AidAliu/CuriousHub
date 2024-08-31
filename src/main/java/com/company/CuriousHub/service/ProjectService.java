@@ -43,7 +43,7 @@ public class ProjectService {
         return projectRepository.findById(id);
     }
 
-    public Project save(String title, String description, Status status, Visibility visibility, MultipartFile file, Integer userId) throws ResourceNotFoundException {
+    public Project save(String title, String description, Status status, Visibility visibility, MultipartFile file, Integer userId, int workersNeeded) throws ResourceNotFoundException {
         String filePath = saveFile(file);
         User createdBy = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -57,18 +57,17 @@ public class ProjectService {
         project.setCreatedBy(createdBy);
         project.setCreatedAt(LocalDateTime.now());
         project.setUpdatedAt(LocalDateTime.now());
-
+        project.setWorkers(1); // Creator is the first worker
+        project.setWorkersNeeded(workersNeeded);
 
         project.getUsers().add(createdBy);
-
         createdBy.getProjects().add(project);
-
 
         userRepository.save(createdBy);
         return projectRepository.save(project);
     }
 
-    public Project updateProject(Integer id, String title, String description, Status status, Visibility visibility, MultipartFile file, Integer userId) throws ResourceNotFoundException {
+    public Project updateProject(Integer id, String title, String description, Status status, Visibility visibility, MultipartFile file, Integer userId, int workersNeeded) throws ResourceNotFoundException {
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
 
@@ -82,8 +81,49 @@ public class ProjectService {
         project.setStatus(status);
         project.setVisibility(visibility);
         project.setUpdatedAt(LocalDateTime.now());
+        project.setWorkersNeeded(workersNeeded);
 
         return projectRepository.save(project);
+    }
+
+    public Project addUserToProject(Integer projectId, Integer userId) throws ResourceNotFoundException {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (!project.getUsers().contains(user)) {
+            project.getUsers().add(user);
+            user.getProjects().add(project);
+            project.setWorkers(project.getUsers().size());
+            project.setWorkersNeeded(project.getWorkersNeeded() - 1);
+
+            projectRepository.save(project);
+            userRepository.save(user);
+        }
+
+        return project;
+    }
+
+    public Project removeUserFromProject(Integer projectId, Integer userId) throws ResourceNotFoundException {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (project.getUsers().contains(user)) {
+            project.getUsers().remove(user);
+            user.getProjects().remove(project);
+            project.setWorkers(project.getUsers().size());
+            project.setWorkersNeeded(project.getWorkersNeeded() + 1);
+
+            projectRepository.save(project);
+            userRepository.save(user);
+        }
+
+        return project;
     }
 
     public void deleteById(Integer id) throws ResourceNotFoundException {
