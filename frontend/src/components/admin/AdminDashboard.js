@@ -1,13 +1,11 @@
 // src/components/admin/AdminDashboard.js
 import React from 'react';
 import { Link } from 'react-router-dom';
-import Sidebar from '../layout/Sidebar'; // Import the Sidebar component
 import '../styles/Dashboard.css';
 
 const AdminDashboard = () => {
   return (
     <div className="admin-dashboard">
-      <Sidebar /> {/* Include the Sidebar here */}
       <div className="dashboard-content">
         <h2>Admin Dashboard</h2>
         <div className="dashboard-sections">

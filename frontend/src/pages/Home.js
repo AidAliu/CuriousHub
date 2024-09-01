@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../api/apiClient';
 import '../components/styles/Home.css'; 
-import Sidebar from '../components/layout/Sidebar'; // Import the Sidebar component
 
 const Home = () => {
   const [projects, setProjects] = useState([]);
@@ -108,7 +107,6 @@ const Home = () => {
 
   return (
     <div className="home">
-      <Sidebar /> {/* Sidebar is added here */}
       <div className="home-content"> {/* Wrap the rest of the content */}
         <h2>Projects</h2>
 
@@ -154,12 +152,15 @@ const Home = () => {
               <p>Status: {project.status}</p>
               <p>Visibility: {project.visibility}</p>
               <p>People working: {project.workers}</p>
-              <p>People needed: {project.workersNeeded - project.workers}</p>
-              <p>Working on this project: {project.users ? project.users.map(user => user.username).join(', ') : 'No users yet'}</p>
-              {currentUser && project.users && project.users.some(user => user.id === currentUser.id) ? (
-                <button onClick={() => handleLeaveProject(project.id)}>Leave Project</button>
-              ) : (
+              <p>People needed: {Math.max(0, project.workersNeeded)}</p>
+              <p>Working on this project: {project.users?.length > 0 ? project.users.map(user => user.username).join(', ') : 'No users yet'}</p>
+              {currentUser && project.workersNeeded > 0 && !project.users?.some(user => user.id === currentUser.id) ? (
                 <button onClick={() => handleJoinProject(project.id)}>Join Project</button>
+              ) : (
+                <button disabled>Join Project</button>
+              )}
+              {currentUser && project.users?.some(user => user.id === currentUser.id) && (
+                <button onClick={() => handleLeaveProject(project.id)}>Leave Project</button>
               )}
               {project.filePath && (
                 <button onClick={() => handleDownload(project.filePath)}>

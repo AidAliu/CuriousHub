@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -86,6 +87,7 @@ public class ProjectService {
         return projectRepository.save(project);
     }
 
+    @Transactional
     public Project addUserToProject(Integer projectId, Integer userId) throws ResourceNotFoundException {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
@@ -93,19 +95,38 @@ public class ProjectService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        if (!project.getUsers().contains(user)) {
-            project.getUsers().add(user);
-            user.getProjects().add(project);
-            project.setWorkers(project.getUsers().size());
-            project.setWorkersNeeded(project.getWorkersNeeded() - 1);
+        // Check if the project is full
+        if (project.getWorkersNeeded() <= 0) {
+            logger.info("Project with ID {} is full. User with ID {} cannot join.", projectId, userId);
+            throw new IllegalStateException("Cannot join project. No more workers needed.");
+        }
 
+        // Check if the user is already part of the project
+        if (!project.getUsers().contains(user)) {
+            // Add the user to the project
+            project.getUsers().add(user);
+            // Add the project to the user's list of projects
+            user.getProjects().add(project);
+
+            // Update the number of workers
+            project.setWorkers(project.getUsers().size());
+
+            // Ensure workersNeeded does not go below zero
+            project.setWorkersNeeded(Math.max(0, project.getWorkersNeeded() - 1));
+
+            // Save the changes to both the project and user entities
             projectRepository.save(project);
             userRepository.save(user);
+
+            logger.info("User with ID {} successfully added to project with ID {}", userId, projectId);
+        } else {
+            logger.info("User with ID {} is already a member of project with ID {}", userId, projectId);
         }
 
         return project;
     }
 
+    @Transactional
     public Project removeUserFromProject(Integer projectId, Integer userId) throws ResourceNotFoundException {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
@@ -117,7 +138,10 @@ public class ProjectService {
             project.getUsers().remove(user);
             user.getProjects().remove(project);
             project.setWorkers(project.getUsers().size());
-            project.setWorkersNeeded(project.getWorkersNeeded() + 1);
+
+            // Update workersNeeded and ensure it doesn't exceed initial capacity
+            int initialWorkersNeeded = project.getWorkers() + project.getWorkersNeeded(); // Assuming this is how you define it
+            project.setWorkersNeeded(Math.min(initialWorkersNeeded, project.getWorkersNeeded() + 1));
 
             projectRepository.save(project);
             userRepository.save(user);

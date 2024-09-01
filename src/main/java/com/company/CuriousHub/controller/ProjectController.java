@@ -8,6 +8,8 @@ import com.company.CuriousHub.service.ProjectService;
 import com.company.CuriousHub.user.User;
 import com.company.CuriousHub.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
@@ -29,6 +31,8 @@ import java.util.List;
 @RequestMapping("/api/v1/projects")
 @RequiredArgsConstructor
 public class ProjectController {
+
+    private static final Logger logger = LoggerFactory.getLogger(ProjectController.class);
 
     private final ProjectService projectService;
     private final UserRepository userRepository;
@@ -61,6 +65,7 @@ public class ProjectController {
                     .body(resource);
 
         } catch (Exception e) {
+            logger.error("Error downloading file: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
@@ -83,10 +88,13 @@ public class ProjectController {
             return ResponseEntity.status(HttpStatus.CREATED).body(savedProject);
 
         } catch (IllegalArgumentException e) {
+            logger.error("Error creating project: Invalid status or visibility");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         } catch (ResourceNotFoundException e) {
+            logger.error("Error creating project: User not found");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         } catch (Exception e) {
+            logger.error("Error creating project: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
@@ -97,6 +105,7 @@ public class ProjectController {
             projectService.deleteById(id);
             return ResponseEntity.noContent().build();
         } catch (ResourceNotFoundException e) {
+            logger.error("Error deleting project: Project not found");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
@@ -105,9 +114,14 @@ public class ProjectController {
     public ResponseEntity<Project> joinProject(@PathVariable Integer projectId) {
         try {
             Integer userId = getCurrentUserId();
+            logger.info("User with ID {} is attempting to join project with ID {}", userId, projectId);
             Project updatedProject = projectService.addUserToProject(projectId, userId);
             return ResponseEntity.ok(updatedProject);
+        } catch (IllegalStateException e) {
+            logger.error("Project is full: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(null); // 409 Conflict when project is full
         } catch (ResourceNotFoundException e) {
+            logger.error("Error joining project: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
@@ -119,6 +133,7 @@ public class ProjectController {
             Project updatedProject = projectService.removeUserFromProject(projectId, userId);
             return ResponseEntity.ok(updatedProject);
         } catch (ResourceNotFoundException e) {
+            logger.error("Error leaving project: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
@@ -129,8 +144,10 @@ public class ProjectController {
             String username = ((UserDetails) authentication.getPrincipal()).getUsername();
             User user = userRepository.findByUsername(username)
                     .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+            logger.info("Authenticated User: {} with ID: {}", username, user.getId());
             return user.getId();
         }
+        logger.error("User not authenticated");
         throw new ResourceNotFoundException("User not found");
     }
 }
