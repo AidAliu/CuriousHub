@@ -30,7 +30,6 @@ const Home = () => {
   };
 
   const handleJoinProject = (projectId) => {
-    console.log('currentUser:', currentUser);
     if (!currentUser) {
       alert('Please log in to join a project.');
       return;
@@ -58,21 +57,22 @@ const Home = () => {
 
   const handleDownload = (filePath) => {
     const fileName = filePath.split(/(\\|\/)/g).pop();
-    apiClient.get(`/download/${encodeURIComponent(fileName)}`, { responseType: 'blob' })
-      .then(response => {
-        const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', fileName);
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-      })
-      .catch(error => {
-        console.error('Error downloading file:', error);
-        alert('Error downloading file. Please try again later.');
-      });
-  };
+    apiClient.get(`/projects/download/${encodeURIComponent(fileName)}`, { responseType: 'blob' })
+        .then(response => {
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', fileName);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        })
+        .catch(error => {
+            console.error('Error downloading file:', error);
+            alert('Error downloading file. Please try again later.');
+        });
+};
+
 
   const handleCreateProject = (e) => {
     e.preventDefault();
@@ -170,7 +170,7 @@ const Home = () => {
             </div>
           ))}
         </div>
-      </div> {/* Close home-content div */}
+      </div> 
     </div>
   );
 };

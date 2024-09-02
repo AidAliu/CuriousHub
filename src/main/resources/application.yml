@@ -2,7 +2,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/curioushub
     username: root
-    password:
+    password: # Add your MySQL password here
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       minimum-idle: 5
@@ -27,6 +27,11 @@ spring:
     pathmatch:
       matching-strategy: ant_path_matcher  # Fixes the issue with pattern matching
 
+  servlet:
+    multipart:
+      max-file-size: 10MB  # Set the maximum size for uploaded files
+      max-request-size: 10MB  # Set the maximum request size, including files
+
 server:
   port: 8080
   servlet:
@@ -37,6 +42,7 @@ logging:
     root: INFO
     org.springframework.web: DEBUG
 
-# Custom property for file upload directory
 file:
-  upload-dir: src/main/resources/uploads
+  upload-dir: C:/Users/aidal/Desktop/CuriousHub/CuriousHub/src/main/resources/uploads
+
+

@@ -30,6 +30,7 @@ public class SecurityConfiguration {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Use explicit CORS configuration
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers("/api/v1/projects/download/**").permitAll() // Allow public access to file downloads
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/projects/**").authenticated()
                         .anyRequest().authenticated()
@@ -43,7 +44,6 @@ public class SecurityConfiguration {
         return http.build();
     }
 
-    // Add this method to define CORS configuration
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();

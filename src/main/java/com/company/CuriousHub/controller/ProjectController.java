@@ -10,6 +10,7 @@ import com.company.CuriousHub.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
@@ -21,7 +22,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -37,6 +39,9 @@ public class ProjectController {
     private final ProjectService projectService;
     private final UserRepository userRepository;
 
+    @Value("${file.upload-dir}")
+    private String uploadDir;
+
     @GetMapping
     public List<Project> getAllProjects() {
         return projectService.findAll();
@@ -47,27 +52,6 @@ public class ProjectController {
         return projectService.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
-    }
-
-    @GetMapping("/download/{filename:.+}")
-    public ResponseEntity<Resource> downloadFile(@PathVariable String filename) {
-        try {
-            Path filePath = Paths.get("C:/Users/aidal/Desktop/CuriousHub/src/main/resources/uploads").resolve(filename).normalize();
-            Resource resource = new UrlResource(filePath.toUri());
-
-            if (!resource.exists()) {
-                return ResponseEntity.notFound().build();
-            }
-
-            return ResponseEntity.ok()
-                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
-                    .body(resource);
-
-        } catch (Exception e) {
-            logger.error("Error downloading file: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
     }
 
     @PostMapping(consumes = "multipart/form-data")
@@ -119,7 +103,7 @@ public class ProjectController {
             return ResponseEntity.ok(updatedProject);
         } catch (IllegalStateException e) {
             logger.error("Project is full: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(null); // 409 Conflict when project is full
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
         } catch (ResourceNotFoundException e) {
             logger.error("Error joining project: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
@@ -137,6 +121,47 @@ public class ProjectController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
+
+
+    @GetMapping("/download/{filename:.+}")
+    public ResponseEntity<Resource> downloadFile(@PathVariable String filename) {
+        try {
+            // Decode the filename to handle spaces and special characters correctly
+            String decodedFilename = java.net.URLDecoder.decode(filename, StandardCharsets.UTF_8.name());
+
+            // Construct the full path to the file using the upload directory
+            Path filePath = Paths.get(uploadDir).resolve(decodedFilename).normalize();
+            logger.info("Attempting to download file from: {}", filePath);
+
+            // Check if the file exists and is readable
+            if (!Files.exists(filePath) || !Files.isReadable(filePath)) {
+                logger.error("File not found or not readable: {}", filePath);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
+
+            // Create a UrlResource for the file
+            Resource resource = new UrlResource(filePath.toUri());
+
+            // Determine the content type (fallback to 'application/octet-stream' if unknown)
+            String contentType = Files.probeContentType(filePath);
+            if (contentType == null) {
+                contentType = "application/octet-stream";
+            }
+
+            // Set the response headers and return the file as a response
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+                    .body(resource);
+
+        } catch (Exception e) {
+            logger.error("Error downloading file: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+
+
 
     private Integer getCurrentUserId() throws ResourceNotFoundException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
