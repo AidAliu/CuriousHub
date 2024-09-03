@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import '../styles/Auth.css'; 
 
 function Register() {
@@ -10,6 +11,8 @@ function Register() {
     password: '',
     age: ''
   });
+
+  const navigate = useNavigate(); // Initialize the navigate function
 
   const handleChange = (e) => {
     setFormData({
@@ -45,6 +48,7 @@ function Register() {
 
       if (response.ok) {
         alert('Registration successful');
+        navigate('/login'); // Redirect to login after successful registration
       } else {
         const errorData = await response.json();
         if (errorData && errorData.message) {

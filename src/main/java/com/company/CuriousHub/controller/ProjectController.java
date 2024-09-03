@@ -122,33 +122,24 @@ public class ProjectController {
         }
     }
 
-
     @GetMapping("/download/{filename:.+}")
     public ResponseEntity<Resource> downloadFile(@PathVariable String filename) {
         try {
-            // Decode the filename to handle spaces and special characters correctly
             String decodedFilename = java.net.URLDecoder.decode(filename, StandardCharsets.UTF_8.name());
-
-            // Construct the full path to the file using the upload directory
             Path filePath = Paths.get(uploadDir).resolve(decodedFilename).normalize();
             logger.info("Attempting to download file from: {}", filePath);
 
-            // Check if the file exists and is readable
             if (!Files.exists(filePath) || !Files.isReadable(filePath)) {
                 logger.error("File not found or not readable: {}", filePath);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
 
-            // Create a UrlResource for the file
             Resource resource = new UrlResource(filePath.toUri());
-
-            // Determine the content type (fallback to 'application/octet-stream' if unknown)
             String contentType = Files.probeContentType(filePath);
             if (contentType == null) {
                 contentType = "application/octet-stream";
             }
 
-            // Set the response headers and return the file as a response
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType(contentType))
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
@@ -159,9 +150,6 @@ public class ProjectController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-
-
-
 
     private Integer getCurrentUserId() throws ResourceNotFoundException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -174,5 +162,20 @@ public class ProjectController {
         }
         logger.error("User not authenticated");
         throw new ResourceNotFoundException("User not found");
+    }
+
+    @PatchMapping("/{projectId}/update")
+    public ResponseEntity<Project> updateProjectAttributes(
+            @PathVariable Integer projectId,
+            @RequestParam(required = false) Integer workersNeeded
+    ) {
+        try {
+            Integer userId = getCurrentUserId();
+            Project updatedProject = projectService.updateProjectAttributes(projectId, userId, workersNeeded);
+            return ResponseEntity.ok(updatedProject);
+        } catch (ResourceNotFoundException e) {
+            logger.error("Error updating project attributes: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
     }
 }

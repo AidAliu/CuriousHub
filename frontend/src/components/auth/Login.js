@@ -7,8 +7,8 @@ function Login() {
     username: '',
     password: ''
   });
-  const [loading, setLoading] = useState(false); // Loading state
-  const [error, setError] = useState(null); // Error state
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -20,8 +20,8 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true); // Start loading
-    setError(null); // Clear previous errors
+    setLoading(true);
+    setError(null);
 
     if (!formData.username || !formData.password) {
       setError('Please enter both username and password.');
@@ -40,10 +40,9 @@ function Login() {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Token:', data.token);
-
-        localStorage.setItem('role', data.role);
         localStorage.setItem('token', data.token);
+        localStorage.setItem('refreshToken', data.refreshToken); // Store the refresh token
+        localStorage.setItem('role', data.role);
 
         if (data.role === 'ADMIN') {
           navigate('/dashboard');
@@ -57,7 +56,7 @@ function Login() {
       console.error('Error during login:', error);
       setError('An error occurred during login');
     } finally {
-      setLoading(false); // End loading
+      setLoading(false);
     }
   };
 

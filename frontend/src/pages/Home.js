@@ -13,6 +13,7 @@ const Home = () => {
     file: null,
     workersNeeded: 1
   });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchProjects();
@@ -22,7 +23,10 @@ const Home = () => {
 
   const fetchProjects = () => {
     apiClient.get('/projects')
-      .then(response => setProjects(response.data))
+      .then(response => {
+        setProjects(response.data);
+        console.log("Projects fetched:", response.data);
+      })
       .catch(error => {
         console.error('Error fetching projects:', error);
         alert('Error fetching projects. Please try again later.');
@@ -34,11 +38,16 @@ const Home = () => {
       alert('Please log in to join a project.');
       return;
     }
+    setLoading(true);
     apiClient.post(`/projects/${projectId}/join`)
-      .then(() => fetchProjects())
+      .then(() => {
+        fetchProjects();
+        setLoading(false);
+      })
       .catch(error => {
         console.error('Error joining project:', error);
         alert('Error joining project. Please try again later.');
+        setLoading(false);
       });
   };
 
@@ -47,11 +56,16 @@ const Home = () => {
       alert('Please log in to leave a project.');
       return;
     }
+    setLoading(true);
     apiClient.post(`/projects/${projectId}/leave`)
-      .then(() => fetchProjects())
+      .then(() => {
+        fetchProjects();
+        setLoading(false);
+      })
       .catch(error => {
         console.error('Error leaving project:', error);
         alert('Error leaving project. Please try again later.');
+        setLoading(false);
       });
   };
 
@@ -71,8 +85,7 @@ const Home = () => {
             console.error('Error downloading file:', error);
             alert('Error downloading file. Please try again later.');
         });
-};
-
+  };
 
   const handleCreateProject = (e) => {
     e.preventDefault();
@@ -105,12 +118,49 @@ const Home = () => {
       });
   };
 
+  const handleUpdateProjectWorkers = (projectId, workersNeeded) => {
+    if (!currentUser) {
+      alert('Please log in to update the project.');
+      return;
+    }
+    setLoading(true);
+    apiClient.patch(`/projects/${projectId}/update`, { workersNeeded })
+      .then(() => {
+        fetchProjects();
+        setLoading(false);
+        alert('Workers needed updated successfully!');
+      })
+      .catch(error => {
+        console.error('Error updating project:', error);
+        alert('Error updating project. Please try again later.');
+        setLoading(false);
+      });
+  };
+
+  const handleRemoveWorker = (projectId, userId) => {
+    if (!currentUser) {
+      alert('Please log in to remove a worker.');
+      return;
+    }
+    setLoading(true);
+    apiClient.delete(`/projects/${projectId}/workers/${userId}`)
+      .then(() => {
+        fetchProjects();
+        setLoading(false);
+        alert('Worker removed successfully!');
+      })
+      .catch(error => {
+        console.error('Error removing worker:', error);
+        alert('Error removing worker. Please try again later.');
+        setLoading(false);
+      });
+  };
+
   return (
     <div className="home">
-      <div className="home-content"> {/* Wrap the rest of the content */}
+      <div className="home-content">
         <h2>Projects</h2>
 
-        {/* Project Creation Form */}
         {currentUser && (
           <form onSubmit={handleCreateProject} className="create-project-form">
             <h3>Create New Project</h3>
@@ -143,9 +193,8 @@ const Home = () => {
           </form>
         )}
 
-        {/* Existing Projects List */}
         <div className="project-list">
-          {projects.slice().reverse().map(project => ( // Display from last posted to first
+          {projects.slice().reverse().map(project => (
             <div key={project.id} className="project-item">
               <h3>{project.title}</h3>
               <p>{project.description}</p>
@@ -154,18 +203,50 @@ const Home = () => {
               <p>People working: {project.workers}</p>
               <p>People needed: {Math.max(0, project.workersNeeded)}</p>
               <p>Working on this project: {project.users?.length > 0 ? project.users.map(user => user.username).join(', ') : 'No users yet'}</p>
-              {currentUser && project.workersNeeded > 0 && !project.users?.some(user => user.id === currentUser.id) ? (
-                <button onClick={() => handleJoinProject(project.id)}>Join Project</button>
+
+              {currentUser && project.users?.some(user => user.id === currentUser.id) ? (
+                <button onClick={() => handleLeaveProject(project.id)} disabled={loading}>
+                  Leave Project
+                </button>
               ) : (
-                <button disabled>Join Project</button>
+                currentUser && project.workersNeeded > 0 && (
+                  <button onClick={() => handleJoinProject(project.id)} disabled={loading}>
+                    Join Project
+                  </button>
+                )
               )}
-              {currentUser && project.users?.some(user => user.id === currentUser.id) && (
-                <button onClick={() => handleLeaveProject(project.id)}>Leave Project</button>
-              )}
+
               {project.filePath && (
                 <button onClick={() => handleDownload(project.filePath)}>
                   Download {project.filePath.split(/(\\|\/)/g).pop()}
                 </button>
+              )}
+
+              {currentUser && currentUser.id === project.createdBy.id && (
+                <div>
+                  <label>
+                    Workers Needed:
+                    <input 
+                      type="number" 
+                      value={project.workersNeeded}
+                      onChange={(e) => handleUpdateProjectWorkers(project.id, e.target.value)}
+                    />
+                  </label>
+                  <button onClick={() => handleUpdateProjectWorkers(project.id, project.workersNeeded)}>
+                    Update Workers Needed
+                  </button>
+                  <div>
+                    <h4>Manage Workers</h4>
+                    {project.users.map(user => (
+                      user.id !== currentUser.id && (
+                        <div key={user.id}>
+                          <span>{user.username}</span>
+                          <button onClick={() => handleRemoveWorker(project.id, user.id)}>Remove Worker</button>
+                        </div>
+                      )
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
           ))}

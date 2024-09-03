@@ -58,7 +58,7 @@ public class ProjectService {
         project.setCreatedBy(createdBy);
         project.setCreatedAt(LocalDateTime.now());
         project.setUpdatedAt(LocalDateTime.now());
-        project.setWorkers(1); // Creator is the first worker
+        project.setWorkers(1);
         project.setWorkersNeeded(workersNeeded);
 
         project.getUsers().add(createdBy);
@@ -95,32 +95,18 @@ public class ProjectService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        // Check if the project is full
         if (project.getWorkersNeeded() <= 0) {
-            logger.info("Project with ID {} is full. User with ID {} cannot join.", projectId, userId);
             throw new IllegalStateException("Cannot join project. No more workers needed.");
         }
 
-        // Check if the user is already part of the project
         if (!project.getUsers().contains(user)) {
-            // Add the user to the project
             project.getUsers().add(user);
-            // Add the project to the user's list of projects
             user.getProjects().add(project);
-
-            // Update the number of workers
             project.setWorkers(project.getUsers().size());
-
-            // Ensure workersNeeded does not go below zero
             project.setWorkersNeeded(Math.max(0, project.getWorkersNeeded() - 1));
 
-            // Save the changes to both the project and user entities
             projectRepository.save(project);
             userRepository.save(user);
-
-            logger.info("User with ID {} successfully added to project with ID {}", userId, projectId);
-        } else {
-            logger.info("User with ID {} is already a member of project with ID {}", userId, projectId);
         }
 
         return project;
@@ -138,9 +124,7 @@ public class ProjectService {
             project.getUsers().remove(user);
             user.getProjects().remove(project);
             project.setWorkers(project.getUsers().size());
-
-            // Update workersNeeded and ensure it doesn't exceed initial capacity
-            int initialWorkersNeeded = project.getWorkers() + project.getWorkersNeeded(); // Assuming this is how you define it
+            int initialWorkersNeeded = project.getWorkers() + project.getWorkersNeeded();
             project.setWorkersNeeded(Math.min(initialWorkersNeeded, project.getWorkersNeeded() + 1));
 
             projectRepository.save(project);
@@ -175,5 +159,20 @@ public class ProjectService {
             logger.error("Failed to store file: {}", e.getMessage(), e);
             throw new RuntimeException("Failed to store file: " + e.getMessage(), e);
         }
+    }
+
+    public Project updateProjectAttributes(Integer projectId, Integer userId, Integer workersNeeded) throws ResourceNotFoundException {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
+
+        if (!project.getCreatedBy().getId().equals(userId)) {
+            throw new ResourceNotFoundException("User is not authorized to update this project");
+        }
+
+        if (workersNeeded != null) {
+            project.setWorkersNeeded(workersNeeded);
+        }
+
+        return projectRepository.save(project);
     }
 }

@@ -7,6 +7,8 @@ import com.company.CuriousHub.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -15,12 +17,10 @@ import org.springframework.stereotype.Service;
 public class AuthenticationService {
 
     private final UserRepository repository;
-
     private final PasswordEncoder passwordEncoder;
-
     private final JwtService jwtService;
-
     private final AuthenticationManager authenticationManager;
+    private final UserDetailsService userDetailsService;
 
     public AuthenticationResponse register(RegisterRequest request) {
         if (request.getPassword() == null || request.getPassword().isEmpty())
@@ -39,11 +39,24 @@ public class AuthenticationService {
                 .role(Role.USER)
                 .build();
         repository.save(user);
+
         var jwtToken = jwtService.generateToken(user);
+        var refreshToken = jwtService.generateRefreshToken(user);
+
         return AuthenticationResponse.builder()
                 .token(jwtToken)
+                .refreshToken(refreshToken)
                 .role(user.getRole().name())
                 .build();
+    }
+
+    public UserDetails validateRefreshToken(String refreshToken) {
+        String username = jwtService.extractUsername(refreshToken);
+        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        if (jwtService.isRefreshTokenValid(refreshToken, userDetails)) {
+            return userDetails;
+        }
+        throw new IllegalArgumentException("Invalid or expired refresh token");
     }
 
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
@@ -56,10 +69,11 @@ public class AuthenticationService {
         var user = repository.findByUsername(request.getUsername())
                 .orElseThrow();
         var jwtToken = jwtService.generateToken(user);
+        var refreshToken = jwtService.generateRefreshToken(user);
         return AuthenticationResponse.builder()
                 .token(jwtToken)
+                .refreshToken(refreshToken)
                 .role(user.getRole().name())
                 .build();
-
     }
 }
