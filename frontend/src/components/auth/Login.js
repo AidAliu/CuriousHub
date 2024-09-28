@@ -40,21 +40,30 @@ function Login() {
 
       if (response.ok) {
         const data = await response.json();
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('refreshToken', data.refreshToken); // Store the refresh token
-        localStorage.setItem('role', data.role);
 
+        // Debugging logs to ensure tokens are correct
+        console.log("JWT Token:", data.token);
+        console.log("Refresh Token:", data.refreshToken);
+
+        // Store tokens correctly
+        localStorage.setItem('token', data.token);   // Store JWT token
+        localStorage.setItem('refreshToken', data.refreshToken); // Store refresh token
+        localStorage.setItem('role', data.role);  // Store user role
+
+        // Navigate based on role
         if (data.role === 'ADMIN') {
           navigate('/dashboard');
         } else {
           navigate('/home');
         }
+      } else if (response.status === 403 || response.status === 401) {
+        setError('Invalid username or password');
       } else {
-        setError('Login failed: Invalid username or password');
+        setError('Login failed: Please try again later');
       }
     } catch (error) {
       console.error('Error during login:', error);
-      setError('An error occurred during login');
+      setError('Network error: Please check your internet connection');
     } finally {
       setLoading(false);
     }
