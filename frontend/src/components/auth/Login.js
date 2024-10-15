@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import apiClient from '../../api/apiClient'; // Assuming you have an Axios instance set up
 import '../styles/Auth.css';
 
 function Login() {
@@ -30,16 +31,10 @@ function Login() {
     }
 
     try {
-      const response = await fetch('http://localhost:8080/curioushub/api/v1/auth/authenticate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      });
+      const response = await apiClient.post('/auth/authenticate', formData);
 
-      if (response.ok) {
-        const data = await response.json();
+      if (response.status === 200) {
+        const data = response.data;
 
         // Debugging logs to ensure tokens are correct
         console.log("JWT Token:", data.token);
@@ -48,7 +43,8 @@ function Login() {
         // Store tokens correctly
         localStorage.setItem('token', data.token);   // Store JWT token
         localStorage.setItem('refreshToken', data.refreshToken); // Store refresh token
-        localStorage.setItem('role', data.role);  // Store user role
+        localStorage.setItem('role', data.role);  // Store user 
+        localStorage.setItem('user', JSON.stringify(data.user));
 
         // Navigate based on role
         if (data.role === 'ADMIN') {

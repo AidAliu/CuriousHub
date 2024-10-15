@@ -1,7 +1,9 @@
 package com.company.CuriousHub.user;
 
 import com.company.CuriousHub.project.Project;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -24,6 +26,7 @@ import java.util.Set;
 @AllArgsConstructor
 @Entity
 @Table(name = "user")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class User implements UserDetails {
 
     @Id
@@ -33,7 +36,10 @@ public class User implements UserDetails {
     private String lastname;
     private String username;
     private String email;
+
+    @JsonIgnoreProperties({"projects"})
     private String password;
+
     private Integer age;
 
     @Enumerated(EnumType.STRING)
@@ -47,7 +53,7 @@ public class User implements UserDetails {
     private Timestamp updated_at;
 
     @ManyToMany(mappedBy = "users")
-    @JsonIgnore
+    @JsonIgnoreProperties({"users", "createdBy"})
     private Set<Project> projects = new HashSet<>();
 
     @Override

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useNavigate } from 'react-router-dom'; 
 import '../styles/Auth.css'; 
 
 function Register() {
@@ -11,8 +11,10 @@ function Register() {
     password: '',
     age: ''
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const navigate = useNavigate(); // Initialize the navigate function
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({
@@ -25,15 +27,17 @@ function Register() {
     const minLength = 8;
     const hasNumber = /\d/;
     const hasLetter = /[a-zA-Z]/;
-
     return password.length >= minLength && hasNumber.test(password) && hasLetter.test(password);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError(null);
 
     if (!validatePassword(formData.password)) {
       alert('Password must be at least 8 characters long and contain both numbers and letters.');
+      setLoading(false);
       return;
     }
 
@@ -47,30 +51,42 @@ function Register() {
       });
 
       if (response.ok) {
-        alert('Registration successful');
-        navigate('/login'); // Redirect to login after successful registration
+        const data = await response.json();
+        console.log('Registration successful:', data);
+
+        // Store tokens and role in localStorage
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('refreshToken', data.refreshToken);
+        localStorage.setItem('role', data.role);
+
+        // Navigate to the appropriate page based on role
+        if (data.role === 'ADMIN') {
+          navigate('/dashboard');
+        } else {
+          navigate('/home');
+        }
       } else {
         const errorData = await response.json();
-        if (errorData && errorData.message) {
-          alert(`Registration failed: ${errorData.message}`);
-        } else {
-          alert(`Registration failed with status code: ${response.status}`);
-        }
+        setError(errorData.message || 'Registration failed.');
       }
     } catch (error) {
       console.error('Error during registration:', error);
-      alert('An error occurred during registration');
+      setError('An error occurred during registration.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <form onSubmit={handleSubmit}>
       <h2>Create your account in CuriousHub</h2>
+      {error && <p className="error">{error}</p>}
       <input
         type="text"
         name="firstname"
         placeholder="First Name"
         onChange={handleChange}
+        value={formData.firstname}
         autoComplete="given-name"
       />
       <input
@@ -78,6 +94,7 @@ function Register() {
         name="lastname"
         placeholder="Last Name"
         onChange={handleChange}
+        value={formData.lastname}
         autoComplete="family-name"
       />
       <input
@@ -85,6 +102,7 @@ function Register() {
         name="username"
         placeholder="Username"
         onChange={handleChange}
+        value={formData.username}
         autoComplete="new-username"
       />
       <input
@@ -92,6 +110,7 @@ function Register() {
         name="email"
         placeholder="Email"
         onChange={handleChange}
+        value={formData.email}
         autoComplete="email"
       />
       <input
@@ -99,6 +118,7 @@ function Register() {
         name="password"
         placeholder="Password"
         onChange={handleChange}
+        value={formData.password}
         autoComplete="new-password"
       />
       <input
@@ -106,9 +126,12 @@ function Register() {
         name="age"
         placeholder="Age"
         onChange={handleChange}
+        value={formData.age}
         autoComplete="off"
       />
-      <button type="submit">Register</button>
+      <button type="submit" disabled={loading}>
+        {loading ? 'Registering...' : 'Register'}
+      </button>
     </form>
   );
 }

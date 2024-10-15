@@ -21,7 +21,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -51,7 +53,7 @@ public class ProjectController {
     public ResponseEntity<Project> getProjectById(@PathVariable Integer id) {
         return projectService.findById(id)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
     @PostMapping(consumes = "multipart/form-data")
@@ -95,7 +97,7 @@ public class ProjectController {
     }
 
     @PostMapping("/{projectId}/join")
-    public ResponseEntity<Project> joinProject(@PathVariable Integer projectId) {
+    public ResponseEntity<?> joinProject(@PathVariable Integer projectId) {
         try {
             Integer userId = getCurrentUserId();
             logger.info("User with ID {} is attempting to join project with ID {}", userId, projectId);
@@ -103,23 +105,37 @@ public class ProjectController {
             return ResponseEntity.ok(updatedProject);
         } catch (IllegalStateException e) {
             logger.error("Project is full: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("Cannot join project. No more workers needed.");
         } catch (ResourceNotFoundException e) {
             logger.error("Error joining project: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 
     @PostMapping("/{projectId}/leave")
-    public ResponseEntity<Project> leaveProject(@PathVariable Integer projectId) {
-        try {
-            Integer userId = getCurrentUserId();
-            Project updatedProject = projectService.removeUserFromProject(projectId, userId);
-            return ResponseEntity.ok(updatedProject);
-        } catch (ResourceNotFoundException e) {
-            logger.error("Error leaving project: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        }
+    public ResponseEntity<?> leaveProject(@PathVariable Integer projectId) {
+       try {
+           Integer userId = getCurrentUserId();
+           Project project = projectService.findById(projectId)
+                   .orElseThrow(() -> new ResourceAccessException("Project not found"));
+
+           logger.info("User ID attempting to leave: {}", userId);
+           logger.info("Project Creator ID: {}", project.getCreatedBy().getId());
+
+           if (project.getCreatedBy().getId().equals(userId)) {
+               logger.error("Project creator cannot leave their own project.");
+               return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                       .body("Project creator cannot leave their own project.");
+           }
+
+           Project updatedProject = projectService.removeUserFromProject(projectId, userId);
+           return ResponseEntity.ok(updatedProject);
+       }
+       catch (ResourceNotFoundException e) {
+           e.printStackTrace();
+           return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+       }
     }
 
     @GetMapping("/download/{filename:.+}")
@@ -142,7 +158,8 @@ public class ProjectController {
 
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType(contentType))
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=\"" + resource.getFilename() + "\"")
                     .body(resource);
 
         } catch (Exception e) {

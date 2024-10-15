@@ -25,7 +25,7 @@ const Home = () => {
     apiClient.get('/projects')
       .then(response => {
         setProjects(response.data);
-        console.log("Projects fetched:", response.data);
+        // Removed console.log to avoid logging sensitive information
       })
       .catch(error => {
         console.error('Error fetching projects:', error);
@@ -97,7 +97,7 @@ const Home = () => {
     formData.append('visibility', newProject.visibility);
     formData.append('file', newProject.file);
     formData.append('workersNeeded', newProject.workersNeeded);
-    formData.append('createdBy', currentUser.id);
+    // Removed 'createdBy' from form data; it's set on the server side
 
     apiClient.post('/projects', formData)
       .then(() => {
@@ -194,62 +194,75 @@ const Home = () => {
         )}
 
         <div className="project-list">
-          {projects.slice().reverse().map(project => (
-            <div key={project.id} className="project-item">
-              <h3>{project.title}</h3>
-              <p>{project.description}</p>
-              <p>Status: {project.status}</p>
-              <p>Visibility: {project.visibility}</p>
-              <p>People working: {project.workers}</p>
-              <p>People needed: {Math.max(0, project.workersNeeded)}</p>
-              <p>Working on this project: {project.users?.length > 0 ? project.users.map(user => user.username).join(', ') : 'No users yet'}</p>
+          {projects.slice().reverse().map(project => {
+            const isProjectCreator =
+              currentUser &&
+              project.createdBy &&
+              String(currentUser.id) === String(project.createdBy.id);
 
-              {currentUser && project.users?.some(user => user.id === currentUser.id) ? (
-                <button onClick={() => handleLeaveProject(project.id)} disabled={loading}>
-                  Leave Project
-                </button>
-              ) : (
-                currentUser && project.workersNeeded > 0 && (
-                  <button onClick={() => handleJoinProject(project.id)} disabled={loading}>
-                    Join Project
-                  </button>
-                )
-              )}
+            const isUserInProject =
+              currentUser &&
+              project.users?.some(user => String(user.id) === String(currentUser.id));
 
-              {project.filePath && (
-                <button onClick={() => handleDownload(project.filePath)}>
-                  Download {project.filePath.split(/(\\|\/)/g).pop()}
-                </button>
-              )}
+            return (
+              <div key={project.id} className="project-item">
+                <h3>{project.title}</h3>
+                <p>{project.description}</p>
+                <p>Status: {project.status}</p>
+                <p>Visibility: {project.visibility}</p>
+                <p>People working: {project.workers}</p>
+                <p>People needed: {Math.max(0, project.workersNeeded)}</p>
+                <p>
+                  Working on this project: {project.users?.length > 0 ? project.users.map(user => user.username).join(', ') : 'No users yet'}
+                </p>
 
-              {currentUser && currentUser.id === project.createdBy.id && (
-                <div>
-                  <label>
-                    Workers Needed:
-                    <input 
-                      type="number" 
-                      value={project.workersNeeded}
-                      onChange={(e) => handleUpdateProjectWorkers(project.id, e.target.value)}
-                    />
-                  </label>
-                  <button onClick={() => handleUpdateProjectWorkers(project.id, project.workersNeeded)}>
-                    Update Workers Needed
-                  </button>
+                {isProjectCreator ? (
                   <div>
-                    <h4>Manage Workers</h4>
-                    {project.users.map(user => (
-                      user.id !== currentUser.id && (
-                        <div key={user.id}>
-                          <span>{user.username}</span>
-                          <button onClick={() => handleRemoveWorker(project.id, user.id)}>Remove Worker</button>
-                        </div>
-                      )
-                    ))}
+                    <label>
+                      Workers Needed:
+                      <input 
+                        type="number" 
+                        value={project.workersNeeded}
+                        onChange={(e) => handleUpdateProjectWorkers(project.id, e.target.value)}
+                      />
+                    </label>
+                    <button onClick={() => handleUpdateProjectWorkers(project.id, project.workersNeeded)}>
+                      Update Workers Needed
+                    </button>
+                    <div>
+                      <h4>Manage Workers</h4>
+                      {project.users.map(user => (
+                        user.id !== currentUser.id && (
+                          <div key={user.id}>
+                            <span>{user.username}</span>
+                            <button onClick={() => handleRemoveWorker(project.id, user.id)}>Remove Worker</button>
+                          </div>
+                        )
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
-          ))}
+                ) : (
+                  isUserInProject ? (
+                    <button onClick={() => handleLeaveProject(project.id)} disabled={loading}>
+                      Leave Project
+                    </button>
+                  ) : (
+                    currentUser && project.workersNeeded > 0 && (
+                      <button onClick={() => handleJoinProject(project.id)} disabled={loading}>
+                        Join Project
+                      </button>
+                    )
+                  )
+                )}
+
+                {project.filePath && (
+                  <button onClick={() => handleDownload(project.filePath)}>
+                    Download {project.filePath.split(/(\\|\/)/g).pop()}
+                  </button>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div> 
     </div>

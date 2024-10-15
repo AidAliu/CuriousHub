@@ -23,13 +23,15 @@ public class AuthenticationService {
     private final UserDetailsService userDetailsService;
 
     public AuthenticationResponse register(RegisterRequest request) {
-        if (request.getPassword() == null || request.getPassword().isEmpty())
+        if (request.getPassword() == null || request.getPassword().isEmpty()) {
             throw new IllegalArgumentException("Password cannot be null or empty");
+        }
+
         if (repository.findByUsername(request.getUsername()).isPresent()) {
             throw new IllegalArgumentException("Username is already taken");
         }
 
-        var user = User.builder()
+        User user = User.builder()
                 .firstname(request.getFirstname())
                 .lastname(request.getLastname())
                 .username(request.getUsername())
@@ -38,10 +40,12 @@ public class AuthenticationService {
                 .age(request.getAge())
                 .role(Role.USER)
                 .build();
+
         repository.save(user);
 
-        var jwtToken = jwtService.generateToken(user);
-        var refreshToken = jwtService.generateRefreshToken(user);
+        // Generate tokens
+        String jwtToken = jwtService.generateToken(user);
+        String refreshToken = jwtService.generateRefreshToken(user);
 
         return AuthenticationResponse.builder()
                 .token(jwtToken)
@@ -66,14 +70,25 @@ public class AuthenticationService {
                         request.getPassword()
                 )
         );
-        var user = repository.findByUsername(request.getUsername())
+
+        User user = repository.findByUsername(request.getUsername())
                 .orElseThrow();
-        var jwtToken = jwtService.generateToken(user);
-        var refreshToken = jwtService.generateRefreshToken(user);
+
+        // Generate tokens
+        String jwtToken = jwtService.generateToken(user);
+        String refreshToken = jwtService.generateRefreshToken(user);
+
         return AuthenticationResponse.builder()
                 .token(jwtToken)
                 .refreshToken(refreshToken)
                 .role(user.getRole().name())
                 .build();
+    }
+
+    // Add this method to fetch the user's role
+    public String getRole(String username) {
+        return repository.findByUsername(username)
+                .map(user -> user.getRole().name())
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
     }
 }

@@ -1,12 +1,11 @@
 package com.company.CuriousHub.project;
 
 import com.company.CuriousHub.user.User;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -18,6 +17,7 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class Project {
 
     @Id
@@ -52,6 +52,7 @@ public class Project {
 
     @ManyToOne
     @JoinColumn(name = "created_by")
+    @JsonIgnoreProperties({"projects"})
     private User createdBy;
 
     @ManyToMany
@@ -60,6 +61,6 @@ public class Project {
             joinColumns = @JoinColumn(name = "project_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
-    @JsonIgnore
+    @JsonIgnoreProperties({"projects"})
     private Set<User> users = new HashSet<>();
 }

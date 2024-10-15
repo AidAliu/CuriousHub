@@ -5,9 +5,11 @@ import com.company.CuriousHub.auth.AuthenticationResponse;
 import com.company.CuriousHub.auth.AuthenticationService;
 import com.company.CuriousHub.auth.RegisterRequest;
 import com.company.CuriousHub.auth.RefreshTokenRequest;
-import com.company.CuriousHub.config.JwtService; // Import JwtService
+import com.company.CuriousHub.config.JwtService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -17,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthenticationController {
 
     private final AuthenticationService service;
-    private final JwtService jwtService; // Inject JwtService
+    private final JwtService jwtService;
 
     @PostMapping("/register")
     public ResponseEntity<AuthenticationResponse> register(@RequestBody RegisterRequest request) {
@@ -31,13 +33,24 @@ public class AuthenticationController {
 
     @PostMapping("/refresh")
     public ResponseEntity<AuthenticationResponse> refreshToken(@RequestBody RefreshTokenRequest request) {
-        var userDetails = service.validateRefreshToken(request.getRefreshToken());
-        var jwtToken = jwtService.generateToken(userDetails);
+        try {
+            // Validate refresh token
+            UserDetails userDetails = service.validateRefreshToken(request.getRefreshToken());
 
-        return ResponseEntity.ok(AuthenticationResponse.builder()
-                .token(jwtToken)
-                .refreshToken(request.getRefreshToken())
-                .role(userDetails.getAuthorities().iterator().next().getAuthority())
-                .build());
+            // Generate new tokens
+            String newAccessToken = jwtService.generateToken(userDetails);
+            String newRefreshToken = jwtService.generateRefreshToken(userDetails);
+
+            // Build and return the new response with tokens
+            return ResponseEntity.ok(
+                    AuthenticationResponse.builder()
+                            .token(newAccessToken)
+                            .refreshToken(newRefreshToken)
+                            .role(service.getRole(userDetails.getUsername())) // Adjusted to call getRole correctly
+                            .build()
+            );
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
     }
 }

@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -124,8 +125,7 @@ public class ProjectService {
             project.getUsers().remove(user);
             user.getProjects().remove(project);
             project.setWorkers(project.getUsers().size());
-            int initialWorkersNeeded = project.getWorkers() + project.getWorkersNeeded();
-            project.setWorkersNeeded(Math.min(initialWorkersNeeded, project.getWorkersNeeded() + 1));
+            project.setWorkersNeeded(project.getWorkersNeeded() + 1);
 
             projectRepository.save(project);
             userRepository.save(user);

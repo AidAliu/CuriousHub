@@ -17,7 +17,9 @@ export default function Navbar() {
   };
 
   const handleLogoutClick = () => {
+    // Clear both access token and refresh token on logout
     localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
     localStorage.removeItem('role');
     navigate('/login');
   };
@@ -27,7 +29,7 @@ export default function Navbar() {
   };
 
   const handleHomeClick = () => {
-    navigate('/'); // Navigate to the home page
+    navigate('/');
   };
 
   return (
