@@ -1,5 +1,6 @@
 package com.company.CuriousHub.auth;
 
+import com.company.CuriousHub.user.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,4 +15,5 @@ public class AuthenticationResponse {
     private String token;
     private String refreshToken;
     private String role;
+    private User user;
 }

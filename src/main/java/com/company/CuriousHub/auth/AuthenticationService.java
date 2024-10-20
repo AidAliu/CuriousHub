@@ -51,6 +51,7 @@ public class AuthenticationService {
                 .token(jwtToken)
                 .refreshToken(refreshToken)
                 .role(user.getRole().name())
+                .user(user)
                 .build();
     }
 
@@ -72,7 +73,7 @@ public class AuthenticationService {
         );
 
         User user = repository.findByUsername(request.getUsername())
-                .orElseThrow();
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         // Generate tokens
         String jwtToken = jwtService.generateToken(user);
@@ -82,6 +83,7 @@ public class AuthenticationService {
                 .token(jwtToken)
                 .refreshToken(refreshToken)
                 .role(user.getRole().name())
+                .user(user)
                 .build();
     }
 

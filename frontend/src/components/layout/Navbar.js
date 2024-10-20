@@ -21,6 +21,7 @@ export default function Navbar() {
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('role');
+    localStorage.removeItem('user'); // Remove user data as well
     navigate('/login');
   };
 
@@ -28,27 +29,42 @@ export default function Navbar() {
     navigate('/dashboard');
   };
 
-  const handleHomeClick = () => {
-    navigate('/');
+  const handleHomeClick = (e) => {
+    e.preventDefault(); // Prevent default anchor behavior
+    navigate('/home');
   };
 
   return (
     <nav className="navbar">
-      <a className="navbar-brand" href="#" onClick={handleHomeClick}>CuriousHub</a>
+      <a className="navbar-brand" href="/home" onClick={handleHomeClick}>
+        CuriousHub
+      </a>
       <div className="button-container">
         {token ? (
           <>
             {role === 'ADMIN' && location.pathname !== '/dashboard' && (
-              <button className="btn btn-outline-light" onClick={handleDashboardClick}>
+              <button
+                className="btn btn-outline-light"
+                onClick={handleDashboardClick}
+              >
                 Admin Dashboard
               </button>
             )}
-            <button className="btn btn-outline-light" onClick={handleLogoutClick}>Logout</button>
+            <button className="btn btn-outline-light" onClick={handleLogoutClick}>
+              Logout
+            </button>
           </>
         ) : (
           <>
-            <button className="btn btn-outline-light" onClick={handleLoginClick}>Login</button>
-            <button className="btn btn-outline-light" onClick={handleRegisterClick}>Register</button>
+            <button className="btn btn-outline-light" onClick={handleLoginClick}>
+              Login
+            </button>
+            <button
+              className="btn btn-outline-light"
+              onClick={handleRegisterClick}
+            >
+              Register
+            </button>
           </>
         )}
       </div>

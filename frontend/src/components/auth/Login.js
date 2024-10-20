@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import apiClient from '../../api/apiClient'; // Assuming you have an Axios instance set up
+import apiClient from '../../api/apiClient';
 import '../styles/Auth.css';
 
 function Login() {
   const [formData, setFormData] = useState({
     username: '',
-    password: ''
+    password: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -15,7 +15,7 @@ function Login() {
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
@@ -32,34 +32,38 @@ function Login() {
 
     try {
       const response = await apiClient.post('/auth/authenticate', formData);
+      const data = response.data;
 
-      if (response.status === 200) {
-        const data = response.data;
+      // Debugging logs to ensure tokens are correct
+      console.log('Authentication Response Data:', data);
 
-        // Debugging logs to ensure tokens are correct
-        console.log("JWT Token:", data.token);
-        console.log("Refresh Token:", data.refreshToken);
+      // Check if data contains token and user
+      if (!data.token || !data.user) {
+        throw new Error('Invalid response from server');
+      }
 
-        // Store tokens correctly
-        localStorage.setItem('token', data.token);   // Store JWT token
-        localStorage.setItem('refreshToken', data.refreshToken); // Store refresh token
-        localStorage.setItem('role', data.role);  // Store user 
-        localStorage.setItem('user', JSON.stringify(data.user));
+      // Store tokens and user data
+      localStorage.setItem('token', data.token); // Store JWT token
+      localStorage.setItem('refreshToken', data.refreshToken); // Store refresh token
+      localStorage.setItem('role', data.role); // Store role
+      localStorage.setItem('user', JSON.stringify(data.user)); // Store user data
 
-        // Navigate based on role
-        if (data.role === 'ADMIN') {
-          navigate('/dashboard');
-        } else {
-          navigate('/home');
-        }
-      } else if (response.status === 403 || response.status === 401) {
-        setError('Invalid username or password');
+      // Navigate based on role
+      if (data.role === 'ADMIN') {
+        navigate('/dashboard');
       } else {
-        setError('Login failed: Please try again later');
+        navigate('/home');
       }
     } catch (error) {
-      console.error('Error during login:', error);
-      setError('Network error: Please check your internet connection');
+      if (
+        error.response &&
+        (error.response.status === 401 || error.response.status === 403)
+      ) {
+        setError('Invalid username or password');
+      } else {
+        console.error('Error during login:', error);
+        setError('Login failed: Please try again later');
+      }
     } finally {
       setLoading(false);
     }

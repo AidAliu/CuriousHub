@@ -2,6 +2,7 @@ package com.company.CuriousHub.user;
 
 import com.company.CuriousHub.project.Project;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
@@ -37,7 +38,7 @@ public class User implements UserDetails {
     private String username;
     private String email;
 
-    @JsonIgnoreProperties({"projects"})
+    @JsonIgnore
     private String password;
 
     private Integer age;
@@ -57,6 +58,7 @@ public class User implements UserDetails {
     private Set<Project> projects = new HashSet<>();
 
     @Override
+    @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role.name()));
     }
@@ -72,21 +74,25 @@ public class User implements UserDetails {
     }
 
     @Override
+    @JsonIgnore
     public boolean isAccountNonExpired() {
         return true;
     }
 
     @Override
+    @JsonIgnore
     public boolean isAccountNonLocked() {
         return true;
     }
 
     @Override
+    @JsonIgnore
     public boolean isCredentialsNonExpired() {
         return true;
     }
 
     @Override
+    @JsonIgnore
     public boolean isEnabled() {
         return true;
     }
